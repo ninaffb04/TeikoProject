@@ -21,8 +21,8 @@ from plotly.subplots import make_subplots
 from scipy.stats import mannwhitneyu
 from statsmodels.stats.multitest import multipletests
 
-REPO_ROOT = Path(__file__).resolve().parent
-DB_PATH = REPO_ROOT / "clinical_trial.db"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+DB_PATH = REPO_ROOT / "data" / "clinical_trial.db"
 OUTPUTS_DIR = REPO_ROOT / "outputs"
 PLOTS_DIR = OUTPUTS_DIR / "plots"
 

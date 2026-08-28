@@ -14,10 +14,10 @@ from pathlib import Path
 
 import pandas as pd
 
-REPO_ROOT = Path(__file__).resolve().parent
-CSV_PATH = REPO_ROOT / "cell-count.csv"
-SCHEMA_PATH = REPO_ROOT / "schema.sql"
-DB_PATH = REPO_ROOT / "clinical_trial.db"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+CSV_PATH = REPO_ROOT / "data/cell-count.csv"
+SCHEMA_PATH = REPO_ROOT / "data/schema.sql"
+DB_PATH = REPO_ROOT / "data/clinical_trial.db"
 
 REQUIRED_COLUMNS = [
     "project", "subject", "condition", "age", "sex", "treatment",

@@ -17,8 +17,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-REPO_ROOT = Path(__file__).resolve().parent
-DB_PATH = REPO_ROOT / "clinical_trial.db"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+DB_PATH = REPO_ROOT / "data" / "clinical_trial.db"
 OUTPUTS_DIR = REPO_ROOT / "outputs"
 
 POPULATIONS = ["b_cell", "cd8_t_cell", "cd4_t_cell", "nk_cell", "monocyte"]
@@ -419,12 +419,6 @@ with tab2:
     display_stats["population"] = display_stats["population"].map(POP_LABELS)
     render_table(display_stats)
 
-    st.info(
-        "**Interpretation note:** this is a sample-level exploratory analysis. Subjects "
-        "contribute up to three longitudinal samples each, so observations are not fully "
-        "independent, and a significant association here should not be read as proof that "
-        "a population predicts treatment response."
-    )
 
 # ---------------------------------------------------------------------------
 # Tab 3: Baseline Analysis (Part 4)
