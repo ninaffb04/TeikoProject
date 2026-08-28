@@ -8,6 +8,7 @@ Produces:
     outputs/summary_table.csv        -- Part 2: per-sample population frequencies
     outputs/statistical_results.csv  -- Part 3: Mann-Whitney U + BH correction
     outputs/plots/responder_boxplots.html -- Part 3: boxplots per population
+    outputs/plots/responder_longitudinal.html -- Part 3: frequency over time per population
     outputs/baseline_samples.csv     -- Part 4: baseline sample/subject summaries
 """
 
@@ -58,7 +59,8 @@ def part2_summary_table(conn: sqlite3.Connection) -> pd.DataFrame:
 
 def part3_analysis_dataset(conn: sqlite3.Connection) -> pd.DataFrame:
     query = """
-        SELECT s.sample_id AS sample, s.response, pf.population, pf.percentage
+        SELECT s.sample_id AS sample, s.response, s.time_from_treatment_start AS day,
+               pf.population, pf.percentage
         FROM samples s
         JOIN population_frequencies pf ON pf.sample = s.sample_id
         JOIN subjects sub ON sub.subject_id = s.subject_id
@@ -148,6 +150,59 @@ def part3_boxplots(df: pd.DataFrame, stats: pd.DataFrame) -> None:
     print(f"  wrote {out_path.relative_to(REPO_ROOT)}")
 
 
+def part3_longitudinal_plot(df: pd.DataFrame) -> None:
+    """Mean relative frequency over time_from_treatment_start (day 0/7/14),
+    responders vs non-responders, one panel per population.
+
+    Each subject contributes at most one sample per day, so the mean +/- SEM
+    at each day summarizes across subjects within that response group.
+    """
+    labels = {
+        "b_cell": "B Cell", "cd8_t_cell": "CD8 T Cell", "cd4_t_cell": "CD4 T Cell",
+        "nk_cell": "NK Cell", "monocyte": "Monocyte",
+    }
+    fig = make_subplots(rows=1, cols=len(POPULATIONS), subplot_titles=[labels[p] for p in POPULATIONS])
+
+    for i, pop in enumerate(POPULATIONS, start=1):
+        pop_df = df[df["population"] == pop]
+        for response, color in [("yes", "#2E86AB"), ("no", "#E07A5F")]:
+            group = pop_df[pop_df["response"] == response]
+            summary = group.groupby("day")["percentage"].agg(["mean", "sem", "count"]).reset_index()
+            summary = summary.sort_values("day")
+            fig.add_trace(
+                go.Scatter(
+                    x=summary["day"],
+                    y=summary["mean"],
+                    error_y=dict(type="data", array=summary["sem"], visible=True),
+                    mode="lines+markers",
+                    name="Responder" if response == "yes" else "Non-responder",
+                    legendgroup=response,
+                    showlegend=(i == 1),
+                    line=dict(color=color),
+                    marker=dict(color=color),
+                    hovertemplate="Day %{x}<br>Mean frequency: %{y:.2f}%<extra></extra>",
+                ),
+                row=1, col=i,
+            )
+        fig.update_xaxes(title_text="Day", tickvals=sorted(pop_df["day"].unique()), row=1, col=i)
+        fig.update_yaxes(title_text="Mean relative frequency (%)" if i == 1 else None, row=1, col=i)
+
+    fig.update_layout(
+        title=dict(
+            text="Immune Cell Population Frequencies Over Time: Responders vs Non-Responders<br>"
+                 "<sub>Melanoma / Miraclib / PBMC samples, mean ± SEM</sub>",
+        ),
+        height=500,
+        width=1500,
+        margin=dict(t=110, b=60),
+    )
+
+    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = PLOTS_DIR / "responder_longitudinal.html"
+    fig.write_html(out_path)
+    print(f"  wrote {out_path.relative_to(REPO_ROOT)}")
+
+
 # ---------------------------------------------------------------------------
 # Part 4: baseline melanoma PBMC miraclib samples
 # ---------------------------------------------------------------------------
@@ -203,6 +258,7 @@ def main() -> None:
         analysis_df = part3_analysis_dataset(conn)
         stats = part3_statistics(analysis_df)
         part3_boxplots(analysis_df, stats)
+        part3_longitudinal_plot(analysis_df)
 
         print("Part 4: baseline melanoma/PBMC/miraclib summaries ...")
         part4_baseline(conn)

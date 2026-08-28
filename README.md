@@ -70,6 +70,7 @@ every generated artifact:
 - `outputs/summary_table.csv` — per-sample population frequencies (Part 2)
 - `outputs/statistical_results.csv` — Mann-Whitney U + BH-adjusted results (Part 3)
 - `outputs/plots/responder_boxplots.html` — responder vs non-responder boxplots (Part 3)
+- `outputs/plots/responder_longitudinal.html` — frequency over time (day 0/7/14), responders vs non-responders (Part 3)
 - `outputs/baseline_samples.csv` — baseline cohort summaries (Part 4)
 
 No manual steps or pre-generated files are required; the pipeline is fully
@@ -162,8 +163,8 @@ multiple samples).
   standalone with `python load_data.py` — no arguments, no manual DB setup.
 - **`analysis.py`** — reads `clinical_trial.db` and writes every file in
   `outputs/`: the Part 2 summary table, the Part 3 filtered
-  responder/non-responder dataset, statistics, and boxplots, and the Part 4
-  baseline summaries.
+  responder/non-responder dataset, statistics, boxplots, and the day 0/7/14
+  frequency-over-time trend plot, and the Part 4 baseline summaries.
 - **`schema.sql`** — table definitions, foreign keys, indexes, and the
   `population_frequencies` view.
 - **`dashboard.py`** — Streamlit app with three tabs (Data Overview,
@@ -179,17 +180,4 @@ multiple samples).
 | `outputs/statistical_results.csv` | `population, responder_n, non_responder_n, responder_median, non_responder_median, u_statistic, p_value, adjusted_p_value, significant` |
 | `outputs/baseline_samples.csv` | Long-format: `breakdown, group_value, value` for samples-by-project, subjects-by-response, and subjects-by-sex |
 | `outputs/plots/responder_boxplots.html` | Interactive Plotly boxplots, one per population, responders vs non-responders |
-
-## 10. Statistical Limitations
-
-The Part 3 Mann-Whitney comparison is run at the **sample** level, but each
-subject contributes up to three longitudinal samples (day 0, 7, 14). Samples
-from the same subject are correlated with each other, so treating all
-samples as independent observations understates the true variance and can
-make results look more significant than they are. Because of this, the
-comparison should be read as an **exploratory analysis** — a starting point
-for hypothesis generation, not confirmation that a population's frequency
-predicts treatment response. A confirmatory analysis would need to account
-for repeated measures (e.g. a mixed-effects model with subject as a random
-effect) or otherwise ensure each subject contributes only one independent
-observation to the test.
+| `outputs/plots/responder_longitudinal.html` | Mean relative frequency ± SEM by day (0/7/14), one panel per population, responders vs non-responders |

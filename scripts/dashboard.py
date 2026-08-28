@@ -393,6 +393,10 @@ with tab2:
 
     stats_df = load_csv("statistical_results.csv")
 
+    longitudinal_path = OUTPUTS_DIR / "plots" / "responder_longitudinal.html"
+    if longitudinal_path.exists():
+        st.components.v1.html(longitudinal_path.read_text(encoding="utf-8"), height=500, scrolling=True)
+
     plot_path = OUTPUTS_DIR / "plots" / "responder_boxplots.html"
     if plot_path.exists():
         st.components.v1.html(plot_path.read_text(encoding="utf-8"), height=600, scrolling=True)
