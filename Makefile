@@ -4,8 +4,8 @@ setup:
 	pip install -r requirements.txt
 
 pipeline:
-	python load_data.py
-	python analysis.py
+	python scripts/load_data.py
+	python scripts/analysis.py
 
 dashboard:
-	streamlit run dashboard.py
+	streamlit run scripts/dashboard.py
